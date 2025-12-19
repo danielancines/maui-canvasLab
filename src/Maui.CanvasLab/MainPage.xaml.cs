@@ -1,4 +1,6 @@
-﻿namespace Maui.CanvasLab;
+﻿using Vision;
+
+namespace Maui.CanvasLab;
 
 public partial class MainPage : ContentPage
 {
@@ -7,6 +9,24 @@ public partial class MainPage : ContentPage
     public MainPage()
     {
         InitializeComponent();
+    }
+
+    private void OnLineButtonClicked(object? sender, EventArgs e)
+    {
+        this.MyChart.MyChartScale += 10;
+        this.MyChart.Invalidate();
+    }
+
+    private void OnCircleButtonClicked(object? sender, EventArgs e)
+    {
+        this.MyChart.MyChartScale -= 10;
+        this.MyChart.Invalidate();
+    }
+
+    private void OnRectangleButtonClicked(object? sender, EventArgs e)
+    {
+        this.MyChart.Buy = !this.MyChart.Buy;
+        this.MyChart.Invalidate();
     }
 }
 
@@ -23,6 +43,9 @@ public class MyChart : GraphicsView, IDrawable
         pointerGestureRecognizer.PointerMoved += PointerGestureRecognizer_PointerMoved;
         this.GestureRecognizers.Add(pointerGestureRecognizer);
     }
+
+    public int MyChartScale { get; set; } = 50;
+    public bool Buy { get; set; }
 
     private void PointerGestureRecognizer_PointerMoved(object? sender, PointerEventArgs e)
     {
@@ -53,64 +76,47 @@ public class MyChart : GraphicsView, IDrawable
 
     public void Draw(ICanvas canvas, RectF dirtyRect)
     {
-        canvas.FillColor = Colors.Black;
-        canvas.FillRectangle(dirtyRect);
-
-        canvas.StrokeColor = Colors.Green;
-        canvas.StrokeSize = 2;
-
-        if (this._startPoint == null)
-            return;
-
-        float startX = (float)this._startPoint?.X;
-        float startY = (float)this._startPoint?.Y;
-
-        if (_startPoint != null)
-        {
-            canvas.DrawCircle(this._startPoint.Value, 1d);
-        }
-
-
         if (this._endPoint == null)
             return;
 
-        float endX = (float)this._endPoint.Value.X;
-        float endY = (float)this._endPoint.Value.Y;
-        if (this._mousePressed)
+        canvas.Antialias = true;
+        PathF path = new PathF();
+        PointF clickPoint = new PointF((float)this._endPoint.Value.X, (float)this._endPoint.Value.Y);
+        Color arrowColor = Colors.Green;
+
+        if (Buy)
         {
-            float targetY = startY;
-            canvas.DrawString("0%", startX + 4, targetY + 12, HorizontalAlignment.Left);
-            canvas.DrawLine((float)this._startPoint.Value.X, (float)this._startPoint.Value.Y, (float)this._startPoint.Value.X + 300, (float)this._startPoint.Value.Y);
-
-            targetY = startY + ((endY - startY) * 23.6f / 100);
-            canvas.FontColor = Colors.Green;
-            canvas.DrawString("23.6%", startX + 4, targetY + 12, HorizontalAlignment.Left);
-            canvas.DrawLine((float)this._startPoint.Value.X, targetY, (float)this._startPoint.Value.X + 300, targetY);
-
-            targetY = startY + ((endY - startY) * 38.5f / 100);
-            canvas.DrawString("38.5%", startX + 4, targetY + 12, HorizontalAlignment.Left);
-            canvas.DrawLine((float)this._startPoint.Value.X, targetY, (float)this._startPoint.Value.X + 300, targetY);
-
-            targetY = startY + ((endY - startY) * 50 / 100);
-            canvas.DrawString("50%", startX + 4, targetY + 12, HorizontalAlignment.Left);
-            canvas.DrawLine((float)this._startPoint.Value.X, targetY, (float)this._startPoint.Value.X + 300, targetY);
-
-            targetY = startY + ((endY - startY) * 61.8f / 100);
-            canvas.DrawString("61.8%", startX + 4, targetY + 12, HorizontalAlignment.Left);
-            canvas.DrawLine((float)this._startPoint.Value.X, targetY, (float)this._startPoint.Value.X + 300, targetY);
-
-            targetY = endY;
-            canvas.DrawString("100%", startX + 4, targetY + 12, HorizontalAlignment.Left);
-            canvas.DrawLine((float)this._startPoint.Value.X, (float)this._endPoint.Value.Y, (float)this._startPoint.Value.X + 300, (float)this._endPoint.Value.Y);
-
-            //canvas.DrawLine((float)this._startPoint.Value.X, (float)this._startPoint.Value.Y + 50, (float)this._endPoint.Value.X + 100, (float)this._endPoint.Value.Y);
+            path.MoveTo(clickPoint);
+            path.LineTo(clickPoint.X - this.MyChartScale, clickPoint.Y + this.MyChartScale * 2);
+            path.LineTo(clickPoint.X - (this.MyChartScale / 2), clickPoint.Y + this.MyChartScale * 2);
+            path.LineTo(clickPoint.X - (this.MyChartScale / 2), clickPoint.Y + this.MyChartScale * 3);
+            path.LineTo(clickPoint.X + (this.MyChartScale / 2), clickPoint.Y + this.MyChartScale * 3);
+            path.LineTo(clickPoint.X + (this.MyChartScale / 2), clickPoint.Y + this.MyChartScale * 2);
+            path.LineTo(clickPoint.X + this.MyChartScale, clickPoint.Y + this.MyChartScale * 2);
+            path.Close();
+        }
+        else
+        {
+            arrowColor = Colors.Red;
+            path.MoveTo(clickPoint);
+            path.LineTo(clickPoint.X - this.MyChartScale, clickPoint.Y - this.MyChartScale * 2);
+            path.LineTo(clickPoint.X - (this.MyChartScale / 2), clickPoint.Y - this.MyChartScale * 2);
+            path.LineTo(clickPoint.X - (this.MyChartScale / 2), clickPoint.Y - this.MyChartScale * 3);
+            path.LineTo(clickPoint.X + (this.MyChartScale / 2), clickPoint.Y - this.MyChartScale * 3);
+            path.LineTo(clickPoint.X + (this.MyChartScale / 2), clickPoint.Y - this.MyChartScale * 2);
+            path.LineTo(clickPoint.X + this.MyChartScale, clickPoint.Y - this.MyChartScale * 2);
+            path.Close();
         }
 
-        if (_endPoint != null && _startPoint != null)
-        {
-            canvas.DrawCircle(this._endPoint.Value, 1d);
-            //canvas.StrokeDashPattern = [2f];
-            canvas.DrawLine((float)this._startPoint.Value.X, (float)this._startPoint.Value.Y, (float)this._endPoint.Value.X, (float)this._endPoint.Value.Y);
-        }
+        canvas.StrokeSize = 2;
+        canvas.FillColor = arrowColor;
+
+        canvas.SaveState();
+        canvas.Alpha = 0.2f;
+        canvas.FillPath(path);
+        canvas.RestoreState();
+
+        canvas.StrokeColor = arrowColor;
+        canvas.DrawPath(path);
     }
 }

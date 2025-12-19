@@ -1,9 +1,22 @@
-﻿<?xml version="1.0" encoding="utf-8" ?>
+﻿<?xml version="1.0" encoding="utf-8"?>
+
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:local="clr-namespace:Maui.CanvasLab"
              x:Class="Maui.CanvasLab.MainPage">
 
-    <local:MyChart/>
-
+        <Grid RowDefinitions="auto,*">
+                <HorizontalStackLayout Spacing="10">
+                        <Button Text="Increase"
+                                Clicked="OnLineButtonClicked"/>
+                        <Button Text="Decrease"
+                                Clicked="OnCircleButtonClicked"/>
+                        <Button Text="Change Side"
+                                Clicked="OnRectangleButtonClicked"/>
+                </HorizontalStackLayout>
+                <local:MyChart x:Name="MyChart"
+                               HorizontalOptions="Fill"
+                               Grid.Row="1"
+                               VerticalOptions="Fill"/>
+        </Grid>
 </ContentPage>
